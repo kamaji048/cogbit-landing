@@ -51,13 +51,28 @@ jobs:
           npm run build
 
       - name: Configure AWS credentials file
+        env:
+          AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          mkdir -p ~/.aws
-          printf "[default]\naws_access_key_id=%s\naws_secret_access_key=%s\naws_session_token=%s\n" \
-            "${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            "${{ secrets.AWS_SESSION_TOKEN }}" > ~/.aws/credentials
-          printf "[default]\nregion=%s\n" "${{ secrets.AWS_REGION }}" > ~/.aws/config
+          python3 - <<'EOF'
+          import os, pathlib
+          home = pathlib.Path.home()
+          (home / ".aws").mkdir(exist_ok=True)
+          (home / ".aws" / "credentials").write_text(
+              "[default]\n"
+              f"aws_access_key_id={os.environ['AWS_KEY']}\n"
+              f"aws_secret_access_key={os.environ['AWS_SECRET']}\n"
+              f"aws_session_token={os.environ['AWS_TOKEN']}\n"
+          )
+          (home / ".aws" / "config").write_text(
+              "[default]\n"
+              f"region={os.environ['AWS_REGION']}\n"
+          )
+          print("Credentials written successfully")
+          EOF
 
       - name: Deploy to S3
         run: |
