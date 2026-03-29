@@ -10,27 +10,22 @@ output "s3_bucket_arn" {
   value       = aws_s3_bucket.site.arn
 }
 
-output "cloudfront_distribution_id" {
-  description = "ID da distribuição CloudFront – GitHub Secret CLOUDFRONT_DIST_ID"
-  value       = aws_cloudfront_distribution.site.id
-}
-
-output "cloudfront_domain_name" {
-  description = "Domínio padrão da distribuição CloudFront"
-  value       = aws_cloudfront_distribution.site.domain_name
-}
-
 output "site_url" {
-  description = "URL pública do site"
-  value       = var.domain_name != "" ? "https://${var.domain_name}" : "https://${aws_cloudfront_distribution.site.domain_name}"
+  description = "URL pública do site via S3 website"
+  value       = "http://${aws_s3_bucket_website_configuration.site.website_endpoint}"
 }
 
 output "acm_certificate_arn" {
   description = "ARN do certificado ACM"
-  value       = var.domain_name != "" ? aws_acm_certificate.site[0].arn : "N/A – nenhum domínio customizado configurado"
+  value       = "N/A – CloudFront não disponível no AWS Academy"
 }
 
-output "acm_certificate_status" {
-  description = "Status da validação do certificado ACM"
-  value       = var.domain_name != "" ? aws_acm_certificate.site[0].status : "N/A"
+output "cloudfront_distribution_id" {
+  description = "ID da distribuição CloudFront"
+  value       = "N/A – CloudFront não disponível no AWS Academy"
+}
+
+output "cloudfront_domain_name" {
+  description = "Domínio CloudFront"
+  value       = "N/A – CloudFront não disponível no AWS Academy"
 }
