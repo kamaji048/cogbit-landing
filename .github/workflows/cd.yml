@@ -38,3 +38,27 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/cogbit-landing:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Build static export
+        run: |
+          npm ci
+          npm run build
+
+      - name: Configure AWS credentials file
+        run: |
+          mkdir -p ~/.aws
+          printf "[default]\naws_access_key_id=%s\naws_secret_access_key=%s\naws_session_token=%s\n" \
+            "${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            "${{ secrets.AWS_SESSION_TOKEN }}" > ~/.aws/credentials
+          printf "[default]\nregion=%s\n" "${{ secrets.AWS_REGION }}" > ~/.aws/config
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync out s3://${{ secrets.S3_BUCKET_NAME }} --delete
